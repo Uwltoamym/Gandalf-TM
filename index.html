@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gandalf TM</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --primary-color: #4a90e2;
+            --secondary-color: #333;
+            --accent-color: #e74c3c;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 0 20px;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #playerInput {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            background: var(--secondary-color);
+            color: var(--text-color);
+            transition: var(--transition);
+        }
+
+        #playerInput:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow);
+        }
+
+        #playerCount {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: var(--text-color);
+            background: var(--secondary-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            width: 100px;
+        }
+
+        #rosterBox {
+            height: 220px;
+            overflow-y: auto;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background: var(--secondary-color);
+            box-shadow: var(--shadow);
+        }
+
+        #roster {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #444;
+            padding: 12px;
+            margin: 5px;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-color);
+            transition: var(--transition);
+            color: var(--text-color);
+        }
+
+        .player-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow);
+        }
+
+        .remove-btn {
+            background: var(--accent-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .remove-btn:hover {
+            background: #c0392b;
+            transform: scale(1.1);
+        }
+
+        .team-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .team-roster {
+            width: 45%;
+            min-height: 150px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 10px;
+            background: var(--secondary-color);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .team-roster:hover {
+            transform: scale(1.02);
+        }
+
+        .team-roster h3 {
+            margin: 0 0 10px 0;
+            text-align: center;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        .team-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .team-list .player-item {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #splitButton {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #splitButton:hover {
+            background: var(--accent-color);
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+<h1>Gandalf™</h1>
+<input type="text" id="playerInput" placeholder="Enter player name and press Enter" autofocus>
+<div id="playerCount">Players: 0</div>
+<div id="rosterBox">
+    <ul id="roster"></ul>
+</div>
+
+<div class="team-container">
+    <div class="team-roster">
+        <h3>Team A</h3>
+        <ul id="teamA" class="team-list"></ul>
+    </div>
+    <div class="team-roster">
+        <h3>Team B</h3>
+        <ul id="teamB" class="team-list"></ul>
+    </div>
+</div>
+
+<button id="splitButton">Split Teams</button>
+
+<script>
+    const input = document.getElementById('playerInput');
+    const roster = document.getElementById('roster');
+    const teamA = document.getElementById('teamA');
+    const teamB = document.getElementById('teamB');
+    const splitButton = document.getElementById('splitButton');
+    const playerCount = document.getElementById('playerCount');
+
+    let playerTotal = 0;
+
+    function updatePlayerCount() {
+        playerCount.textContent = `Players: ${playerTotal}`;
+    }
+
+    input.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const playerName = input.value.trim();
+
+            if (playerName) {
+                const li = document.createElement('li');
+                li.className = 'player-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = playerName;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'X';
+                removeBtn.className = 'remove-btn';
+                removeBtn.onclick = function() {
+                    roster.removeChild(li);
+                    playerTotal--;
+                    updatePlayerCount();
+                };
+
+                li.appendChild(nameSpan);
+                li.appendChild(removeBtn);
+                roster.appendChild(li);
+
+                input.value = '';
+                playerTotal++;
+                updatePlayerCount();
+            }
+        }
+    });
+
+    input.addEventListener('blur', function() {
+        setTimeout(() => input.focus(), 0);
+    });
+
+    splitButton.addEventListener('click', function() {
+        const players = Array.from(roster.getElementsByClassName('player-item'));
+        if (players.length === 0) return;
+
+        teamA.innerHTML = '';
+        teamB.innerHTML = '';
+
+        for (let i = players.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [players[i], players[j]] = [players[j], players[i]];
+        }
+
+        const half = Math.floor(players.length / 2);
+        const teamASize = players.length % 2 === 0 ? half : half + 1;
+        const teamBSize = half;
+
+        players.forEach((player, index) => {
+            const li = document.createElement('li');
+            li.className = 'player-item';
+            li.textContent = player.querySelector('span').textContent; // Only take the name, not the button
+            if (index < teamASize) {
+                teamA.appendChild(li);
+            } else {
+                teamB.appendChild(li);
+            }
+        });
+    });
+
+    updatePlayerCount();
+</script>
+</body>
+</html>
