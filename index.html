@@ -17,11 +17,19 @@
 
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            max-width: 600px;
             margin: 20px auto;
             padding: 0 20px;
-            background: var(--bg-color);
+            background: var(--bg-color) url('https://c4.wallpaperflare.com/wallpaper/102/209/147/gandalf-the-lord-of-the-rings-wizard-movies-wallpaper-preview.jpg') no-repeat center center fixed;
+            background-size: cover;
             color: var(--text-color);
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            max-width: 900px;
+        }
+
+        .main-content {
+            grid-column: 1;
         }
 
         h1 {
@@ -153,6 +161,12 @@
             animation: slideIn 0.3s ease-out;
         }
 
+        .lead-player {
+            background: #5a2e2e;
+            border-left: 4px solid #ff0000;
+            font-weight: bold;
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -183,28 +197,127 @@
             box-shadow: var(--shadow);
             transform: translateY(-2px);
         }
+
+        #weaponRandomizer {
+            grid-column: 2;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 15px;
+            background: var(--secondary-color);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        #weaponRandomizer h3 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        #weaponDisplay {
+            font-size: 18px;
+            min-height: 24px;
+            padding: 10px;
+            background: #444;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        #spinButton {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        #spinButton:hover {
+            background: var(--accent-color);
+            box-shadow: var(--shadow);
+            transform: translateY(-2px);
+        }
+
+        #leadInput {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            background: #444;
+            color: var(--text-color);
+            box-sizing: border-box;
+        }
+
+        #leadInput:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow);
+        }
+
+        #leadRoster {
+            list-style-type: none;
+            padding: 0;
+            margin: 0 0 10px 0;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        #leadRoster .player-item {
+            padding: 8px;
+            margin: 3px 0;
+        }
+
+        #leadMessage {
+            color: var(--accent-color);
+            font-size: 12px;
+            text-align: center;
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
-<h1>Gandalf™</h1>
-<input type="text" id="playerInput" placeholder="Enter player name and press Enter" autofocus>
-<div id="playerCount">Players: 0</div>
-<div id="rosterBox">
-    <ul id="roster"></ul>
+<div class="main-content">
+    <h1>Gandalf™</h1>
+    <input type="text" id="playerInput" placeholder="Enter player name and press Enter">
+    <div id="playerCount">Players: 0</div>
+    <div id="rosterBox">
+        <ul id="roster"></ul>
+    </div>
+
+    <div class="team-container">
+        <div class="team-roster">
+            <h3>Team A</h3>
+            <ul id="teamA" class="team-list"></ul>
+        </div>
+        <div class="team-roster">
+            <h3>Team B</h3>
+            <ul id="teamB" class="team-list"></ul>
+        </div>
+    </div>
+
+    <button id="splitButton">Split Teams</button>
 </div>
 
-<div class="team-container">
-    <div class="team-roster">
-        <h3>Team A</h3>
-        <ul id="teamA" class="team-list"></ul>
-    </div>
-    <div class="team-roster">
-        <h3>Team B</h3>
-        <ul id="teamB" class="team-list"></ul>
-    </div>
-</div>
+<div id="weaponRandomizer">
+    <h3>Weapon Randomizer</h3>
+    <div id="weaponDisplay"></div>
+    <button id="spinButton">Spin</button>
 
-<button id="splitButton">Split Teams</button>
+    <h3>Lead Players</h3>
+    <input type="text" id="leadInput" placeholder="Add lead player (Enter)">
+    <ul id="leadRoster"></ul>
+    <div id="leadMessage">Lead players must be an even number (2 or 4)</div>
+</div>
 
 <script>
     const input = document.getElementById('playerInput');
@@ -213,8 +326,23 @@
     const teamB = document.getElementById('teamB');
     const splitButton = document.getElementById('splitButton');
     const playerCount = document.getElementById('playerCount');
+    const weaponDisplay = document.getElementById('weaponDisplay');
+    const spinButton = document.getElementById('spinButton');
+    const leadInput = document.getElementById('leadInput');
+    const leadRoster = document.getElementById('leadRoster');
+    const leadMessage = document.getElementById('leadMessage');
 
     let playerTotal = 0;
+    let leadTotal = 0;
+
+    const weapons = [
+        "Glock-18", "USP-S", "P2000", "P250", "CZ75-Auto",
+        "Five-SeveN", "Tec-9", "Desert Eagle", "Dual Berettas", "R8 Revolver",
+        "MAC-10", "MP9", "MP7", "UMP-45", "P90", "PP-Bizon", "MP5-SD",
+        "Galil AR", "AK-47", "SG 553", "FAMAS", "M4A4",
+        "M4A1-S", "AUG", "SSG 08", "AWP", "SCAR-20", "G3SG1",
+        "Nova", "XM1014", "Sawed-Off", "MAG-7", "M249", "Negev"
+    ];
 
     function updatePlayerCount() {
         playerCount.textContent = `Players: ${playerTotal}`;
@@ -252,36 +380,129 @@
         }
     });
 
-    input.addEventListener('blur', function() {
-        setTimeout(() => input.focus(), 0);
+    leadInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const leadName = leadInput.value.trim();
+
+            if (leadName && leadTotal < 4) {
+                const li = document.createElement('li');
+                li.className = 'player-item';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = leadName;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'X';
+                removeBtn.className = 'remove-btn';
+                removeBtn.onclick = function() {
+                    leadRoster.removeChild(li);
+                    leadTotal--;
+                };
+
+                li.appendChild(nameSpan);
+                li.appendChild(removeBtn);
+                leadRoster.appendChild(li);
+
+                leadInput.value = '';
+                leadTotal++;
+            }
+        }
     });
 
     splitButton.addEventListener('click', function() {
         const players = Array.from(roster.getElementsByClassName('player-item'));
-        if (players.length === 0) return;
+        const leadPlayers = Array.from(leadRoster.getElementsByClassName('player-item'));
+        if (players.length === 0 && leadPlayers.length === 0) return;
 
         teamA.innerHTML = '';
         teamB.innerHTML = '';
 
-        for (let i = players.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [players[i], players[j]] = [players[j], players[i]];
+        let totalPlayers = players.length;
+        let shuffledLeads = [];
+        if (leadPlayers.length % 2 === 0 && leadPlayers.length > 0) {
+            shuffledLeads = [...leadPlayers];
+            totalPlayers += leadPlayers.length;
+            for (let i = shuffledLeads.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledLeads[i], shuffledLeads[j]] = [shuffledLeads[j], shuffledLeads[i]];
+            }
+
+            const leadA = shuffledLeads.slice(0, shuffledLeads.length === 4 ? 2 : 1);
+            const leadB = shuffledLeads.slice(shuffledLeads.length === 4 ? 2 : 1);
+
+            leadA.forEach(lead => {
+                const li = document.createElement('li');
+                li.className = 'player-item lead-player';
+                li.textContent = lead.querySelector('span').textContent;
+                teamA.appendChild(li);
+            });
+
+            leadB.forEach(lead => {
+                const li = document.createElement('li');
+                li.className = 'player-item lead-player';
+                li.textContent = lead.querySelector('span').textContent;
+                teamB.appendChild(li);
+            });
+        } else if (leadPlayers.length > 0) {
+            leadMessage.style.display = 'block';
+            setTimeout(() => leadMessage.style.display = 'none', 2000);
         }
 
-        const half = Math.floor(players.length / 2);
-        const teamASize = players.length % 2 === 0 ? half : half + 1;
-        const teamBSize = half;
+        const shuffledPlayers = [...players];
+        for (let i = shuffledPlayers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledPlayers[i], shuffledPlayers[j]] = [shuffledPlayers[j], shuffledPlayers[i]];
+        }
 
-        players.forEach((player, index) => {
+        const half = Math.floor(totalPlayers / 2);
+        const teamASize = totalPlayers % 2 === 0 ? half : half + 1;
+        const remainingPlayersA = teamASize - (shuffledLeads.length === 4 ? 2 : shuffledLeads.length > 0 ? 1 : 0);
+        const remainingPlayersB = half - (shuffledLeads.length === 4 ? 2 : shuffledLeads.length > 0 ? 1 : 0);
+
+        let playerIndex = 0;
+        while (playerIndex < remainingPlayersA && playerIndex < shuffledPlayers.length) {
             const li = document.createElement('li');
             li.className = 'player-item';
-            li.textContent = player.querySelector('span').textContent; // Only take the name, not the button
-            if (index < teamASize) {
-                teamA.appendChild(li);
+            li.textContent = shuffledPlayers[playerIndex].querySelector('span').textContent;
+            teamA.appendChild(li);
+            playerIndex++;
+        }
+
+        while (playerIndex < remainingPlayersA + remainingPlayersB && playerIndex < shuffledPlayers.length) {
+            const li = document.createElement('li');
+            li.className = 'player-item';
+            li.textContent = shuffledPlayers[playerIndex].querySelector('span').textContent;
+            teamB.appendChild(li);
+            playerIndex++;
+        }
+    });
+
+    let spinning = false;
+    spinButton.addEventListener('click', function() {
+        if (spinning) return;
+        spinning = true;
+        spinButton.disabled = true;
+
+        let speed = 100;
+        let iterations = 0;
+        const maxIterations = 30;
+
+        function roll() {
+            const randomWeapon = weapons[Math.floor(Math.random() * weapons.length)];
+            weaponDisplay.textContent = randomWeapon;
+            iterations++;
+
+            if (iterations < maxIterations) {
+                setTimeout(roll, speed);
+                speed += 10;
             } else {
-                teamB.appendChild(li);
+                spinning = false;
+                spinButton.disabled = false;
             }
-        });
+        }
+
+        roll();
     });
 
     updatePlayerCount();
